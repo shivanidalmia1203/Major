@@ -21,12 +21,19 @@ UPLOAD_FOLDER = './static/images'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask("__app__")
-app.config['SECRET_KEY'] = 'a551d32359baf371b9095f28d45347c8b8621830'
+app.config['SECRET_KEY'] = 'a551d32359baf371b9095f28d45347c8b862183'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# def delete_File():
+# 	if os.path.exists('./static/images/fin1.png'):
+# 		os.remove('./static/images/fin1.png')
+# 		print("hello")
+
+	
 
 @app.route('/upload_file', methods=['GET', 'POST'])
 def upload_file():
@@ -56,10 +63,10 @@ def equalize(img):
     cv2.cvtColor(ycrcb, cv2.COLOR_YCR_CB2BGR, img)
     return img
 
-def Watershed(location_det):
+def Watershed(location_det,filename):
 	print(location_det)
 	image = cv2.imread(location_det)
-	im = equalize(image)
+	im = equalize(image)  #call
 	shifted = cv2.pyrMeanShiftFiltering(image, 21, 51)
 
 	gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
@@ -84,17 +91,22 @@ def Watershed(location_det):
 	    for (i, c) in enumerate(cnts):
 	 
 	        ((x, y), _) = cv2.minEnclosingCircle(c)
-	        cv2.putText(image, "#{}".format(i + 1), (int(x) - 10, int(y)),
-	                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-	        cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
+	        # cv2.putText(image, "#{}".format(i + 1), (int(x) - 10, int(y)),
+	        #             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+	        cv2.drawContours(image, [c], -1, (255, 0, 0), 1)
 
-	# plt.savefig('./static/images/fig1.png')
+	#plt.savefig('./static/images/fig1.png')
 	plt.figure()
 	plt.imshow(image, cmap='gray')
 	plt.axis('off')
 	plt.savefig('fig1.png')
+	if os.path.exists('./static/images/modified/'+filename):
+		os.remove('./static/images/modified/'+filename)
+	plt.savefig('./static/images/modified/'+filename)
 	imag = Image.open('fig1.png')
 	imag.show()
+	
+
 	
 # To measure the dimensions
 def midpoint(ptA,ptB):
@@ -173,10 +185,12 @@ def measure_dim(loc):
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
 	# print('./static/images/'+filename)
-	Watershed(str('./static/images/'+filename))
-	dims = measure_dim(str('./static/images/'+filename))
-	dims/=10000
-	return render_template('calculator.html', val=1, dims=dims)
+	Watershed(str('./static/images/'+filename),filename)
+	#dims = measure_dim(str('./static/images/'+filename))
+	#dims/=10000
+	
+	return render_template('calculator.html', val=1, dims=1,filename='images/modified/'+filename)
+
 
 # Least Geographic Elevation
 def elevation(request):
@@ -238,7 +252,8 @@ def postion(lat1,lon1,lat2,lon2):
 # All routes beyond this
 @app.route('/')
 def home():
-	return render_template('index.html', title='RWH')
+	#delete_File()
+	return render_template('index.html', title='Major Project')
 	
 
 @app.route('/rooftop')
